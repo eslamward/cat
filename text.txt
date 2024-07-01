@@ -1,0 +1,72 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+
+	if len(os.Args) < 2 {
+		os.Exit(1)
+	}
+	for i := range os.Args[1:] {
+		if os.Args[i] == ">" {
+			if i == 0 {
+				//create file
+				os.Create(os.Args[i])
+				break
+
+			} else if i == len(os.Args)-1 {
+				fmt.Fprintln(os.Stderr, "error in trailing: > ")
+				os.Exit(1)
+			} else {
+				CopyFiles(os.Args[1:i], os.Args[i+1])
+			}
+		} else {
+			ReadFiles(os.Args[1:])
+
+		}
+	}
+
+}
+
+func ReadFiles(files []string) {
+
+	for _, file := range files {
+		f, err := os.Open(file)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			continue
+		}
+
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+			fmt.Println(line)
+		}
+	}
+
+}
+
+func CopyFiles(files []string, fileWritedToIt string) {
+	for _, file := range files {
+		f, err := os.Open(file)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			continue
+		}
+
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+			err := os.WriteFile(fileWritedToIt, []byte(line), 0777)
+			fmt.Fprintln(os.Stderr, err.Error())
+
+			os.Exit(2)
+		}
+	}
+}
